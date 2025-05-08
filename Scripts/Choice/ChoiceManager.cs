@@ -1,16 +1,16 @@
-using UnityEngine;
-using UnityEngine.UI;
+п»їusing UnityEngine;
 using UnityEngine.Events;
 
 public class ChoiceManager : MonoBehaviour
 {
     public GameObject choicePanel;
+    public PlayerDataSO playerData; 
 
     [Header("Keybinds")]
     public KeyCode leftKey = KeyCode.Q;
     public KeyCode rightKey = KeyCode.E;
 
-    [Header("Виклики")]
+    [Header("Р’РёРєР»РёРєРё")]
     public UnityEvent onLeftChoice;
     public UnityEvent onRightChoice;
 
@@ -24,24 +24,36 @@ public class ChoiceManager : MonoBehaviour
 
     private void Update()
     {
+       
         if (!isChoiceActive) return;
 
         if (Input.GetKeyDown(leftKey))
         {
-            Debug.Log("Натиснуто Q");  // Лог для перевірки, чи спрацьовує натискання Q
             onLeftChoice?.Invoke();
+
+            if (playerData != null)
+            {
+                playerData.data.lastChoice = PlayerChoiceType.Rational;
+                SaveSystem.Save(playerData);
+            }
+
             Hide();
         }
 
         if (Input.GetKeyDown(rightKey))
         {
-            Debug.Log("Натиснуто E");  // Лог для перевірки, чи спрацьовує натискання E
             onRightChoice?.Invoke();
+
+            if (playerData != null)
+            {
+                playerData.data.lastChoice = PlayerChoiceType.Intuitive;
+                SaveSystem.Save(playerData);
+            }
+
             Hide();
         }
+
     }
-
-
     private void Hide()
     {
         choicePanel.SetActive(false);

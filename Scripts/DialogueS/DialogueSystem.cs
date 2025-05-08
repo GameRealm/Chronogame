@@ -5,14 +5,13 @@ using System.Collections;
 
 public class DialogueSystem : MonoBehaviour
 {
-    public Image characterPortrait;      // Портрет персонажа
-    public TextMeshProUGUI dialogueText; // Текст діалогу
-    public GameObject dialoguePanel;     // Панель діалогу
+    public Image characterPortrait;      
+    public TextMeshProUGUI dialogueText; 
+    public GameObject dialoguePanel;     
 
     private DialogueData currentDialogue;
     private int dialogueIndex = 0;
 
-    // Метод для початку діалогу
     public void StartDialogue(DialogueData dialogue)
     {
         if (dialogue == null)
@@ -28,7 +27,7 @@ public class DialogueSystem : MonoBehaviour
         ShowLine();
     }
 
-    // Метод для відображення лінії діалогу
+
     void ShowLine()
     {
         if (dialogueIndex < currentDialogue.dialogueLines.Length)
@@ -58,7 +57,6 @@ public class DialogueSystem : MonoBehaviour
         dialoguePanel.SetActive(false);
     }
 
-    // Метод для відображення відповідної репліки після вибору
     public void PlayLine(string lineID)
     {
         DialogueLine line = FindLineByID(lineID);
@@ -69,12 +67,12 @@ public class DialogueSystem : MonoBehaviour
         }
     }
 
-    // Метод для пошуку репліки за ID
+
     private DialogueLine FindLineByID(string lineID)
     {
         foreach (var line in currentDialogue.dialogueLines)
         {
-            if (line.characterName.Equals(lineID)) // Якщо ID репліки співпадає з переданим
+            if (line.characterName.Equals(lineID)) 
             {
                 return line;
             }
@@ -85,6 +83,6 @@ public class DialogueSystem : MonoBehaviour
     public void ShowEndingLine(PlayerChoiceType playerChoice)
     {
         string lineID = playerChoice == PlayerChoiceType.Rational ? "line_rational_end" : "line_intuitive_end";
-        PlayLine(lineID);  // Відтворюємо відповідну репліку для вибору гравця
+        PlayLine(lineID);  
     }
 }

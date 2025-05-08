@@ -1,4 +1,4 @@
-using System.IO;
+п»їusing System.IO;
 using UnityEngine;
 
 public static class SaveSystem
@@ -9,7 +9,7 @@ public static class SaveSystem
     {
         string json = JsonUtility.ToJson(playerData.data, true);
         File.WriteAllText(path, json);
-        Debug.Log("Збережено у " + path);
+        Debug.Log("Р—Р±РµСЂРµР¶РµРЅРѕ Сѓ " + path);
     }
 
     public static void Load(PlayerDataSO playerData)
@@ -17,12 +17,22 @@ public static class SaveSystem
         if (File.Exists(path))
         {
             string json = File.ReadAllText(path);
-            playerData.data = JsonUtility.FromJson<PlayerSaveData>(json);
-            Debug.Log("Завантажено з " + path);
+            PlayerSaveData loadedData = JsonUtility.FromJson<PlayerSaveData>(json);
+            if (loadedData != null)
+            {
+                playerData.data = loadedData;
+                ChoiceTrigger.lastChoice = loadedData.lastChoice; 
+            }
+            else
+            {
+                Debug.LogWarning("вќЊ РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё SaveData С–Р· JSON.");
+            }
+
+            Debug.Log("Р—Р°РІР°РЅС‚Р°Р¶РµРЅРѕ Р· " + path);
         }
         else
         {
-            Debug.LogWarning("Файл сейву не знайдено.");
+            Debug.LogWarning("Р¤Р°Р№Р» СЃРµР№РІСѓ РЅРµ Р·РЅР°Р№РґРµРЅРѕ.");
         }
     }
 
@@ -31,7 +41,7 @@ public static class SaveSystem
         if (File.Exists(path))
         {
             File.Delete(path);
-            Debug.Log("Сейв видалено.");
+            Debug.Log("РЎРµР№РІ РІРёРґР°Р»РµРЅРѕ.");
         }
     }
 }

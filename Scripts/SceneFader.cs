@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class SceneFader : MonoBehaviour
 {
-    public Image fadeOverlay; // Image with black background
+    public Image fadeOverlay; 
     public float fadeDuration = 1f;
     public float delayBeforeLoad = 3f;
 
@@ -58,7 +58,7 @@ public class SceneFader : MonoBehaviour
         fadeOverlay.color = c;
     }
 
-    private IEnumerator FadeOut()
+    public IEnumerator FadeOut()
     {
         float t = 0f;
         Color c = fadeOverlay.color;

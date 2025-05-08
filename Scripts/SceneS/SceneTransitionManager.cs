@@ -1,19 +1,55 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class SceneTransitionManager : MonoBehaviour
 {
     public PlayerDataSO playerData;
-    public PlayerState playerStats;
-    public Transform player;
-    public string checkpointID;
+    public string checkpointID = "default_checkpoint";
+    private bool isTransitioning = false;
+    private bool playerInside = false;
 
-    public void SaveAndLoadScene(string nextScene)
+    void Update()
     {
-        playerData.CopyFrom(playerStats, player, nextScene, checkpointID);
-        SaveSystem.Save(playerData);
+        if (playerInside && !isTransitioning && Input.GetKeyDown(KeyCode.G))
+        {
+            SaveAndLoadScene("bossFight"); 
+            Debug.Log("Натиснуто G");
+        }
+    }
 
-        SceneFader.Instance.FadeAndLoadScene(nextScene);
+    public void SaveAndLoadScene(string sceneName)
+    {
+        StartCoroutine(HandleSceneTransition(sceneName));
+    }
 
+    private IEnumerator HandleSceneTransition(string sceneName)
+    {
+        isTransitioning = true;
+        yield return SceneFader.Instance.FadeOut();
+
+        if (playerData != null)
+        {
+            playerData.data.lastCheckpointID = checkpointID;
+            SaveSystem.Save(playerData);
+        }
+
+        SceneManager.LoadScene(sceneName);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInside = true;
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInside = false;
+        }
     }
 }

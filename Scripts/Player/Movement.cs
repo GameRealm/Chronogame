@@ -1,5 +1,4 @@
-using SupanthaPaul;
-using UnityEngine;
+п»їusing UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 public class PlayerController : MonoBehaviour
@@ -11,40 +10,47 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private PlayerState playerState;
     private Collider2D currentStairs;
-
-    private GameObject flashlight; // Об'єкт світла
-    private bool hasFlashlight = false; // Чи активний ліхтар
-
+    public PlayerStats stats;
+    private GameObject flashlight; // РћР±'С”РєС‚ СЃРІС–С‚Р»Р°
+    private bool hasFlashlight = false;
+    public PlayerAttacks playerAttacks;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         playerState = GetComponent<PlayerState>();
-      
+        playerAttacks = GetComponent<PlayerAttacks>();
+     
     }
 
     void Update()
     {
+        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        bool isMoving = Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1f;
+        bool isIdle = !isMoving;
+        bool isAttacking = playerAttacks != null && playerAttacks.isAttacking;
+
+        if (stats != null)
+        {
+            stats.isRegenerating = !isRunning && !isAttacking && (isIdle || isMoving);
+        }
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
 
-        // Оновлюємо стан бігу
         playerState.IsRunning = Input.GetKey(KeyCode.LeftShift);
         float currentSpeed = playerState.IsRunning ? speed * 2f : speed;
 
-        // Рух по землі
+
         if (!playerState.IsClimbing)
         {
             transform.Translate(horizontalInput * currentSpeed * Time.deltaTime * Vector2.right);
         }
 
-        // Стрибок (лише якщо не на сходах)
         if (Input.GetButtonDown("Jump") && playerState.IsGrounded && !playerState.IsClimbing)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             playerState.IsGrounded = false;
         }
 
-        // Підйом по сходах
         if (playerState.isOnStairs && verticalInput != 0)
         {
             playerState.IsClimbing = true;
@@ -57,7 +63,6 @@ public class PlayerController : MonoBehaviour
             rb.gravityScale = 1;
         }
 
-        // **Перемикання ліхтаря**
         if (Input.GetKeyDown(KeyCode.F) && playerState.HasLantern)
         {
 
@@ -109,17 +114,16 @@ public class PlayerController : MonoBehaviour
         if (flashlight == null)
         {
             flashlight = new GameObject("Flashlight");
-            Light2D light = flashlight.AddComponent<Light2D>(); // 2D світло
+            Light2D light = flashlight.AddComponent<Light2D>(); 
             light.lightType = Light2D.LightType.Point;
-            light.pointLightOuterRadius = 3f; // Радіус світла
-            light.intensity = 1.3f; // Яскравість
-            light.color = Color.yellow; // Жовтуватий відтінок
+            light.pointLightOuterRadius = 3f;
+            light.intensity = 1.3f; 
+            light.color = Color.yellow; 
 
             flashlight.transform.SetParent(transform);
             flashlight.transform.localPosition = new Vector3(0f, 0.0f, 0);
         }
     }
-
     void DestroyFlashlight()
     {
         if (flashlight != null)

@@ -1,4 +1,4 @@
-using UnityEngine;
+п»їusing UnityEngine;
 using System.Collections;
 
 public enum PlayerChoiceType
@@ -12,50 +12,55 @@ public class ChoiceTrigger : MonoBehaviour
 {
     public ChoiceManager choiceManager;
 
-    [Header("Вибір гравця (зберігається)")]
+    [Header("Р’РёР±С–СЂ РіСЂР°РІС†СЏ (Р·Р±РµСЂС–РіР°С”С‚СЊСЃСЏ)")]
     public static PlayerChoiceType lastChoice = PlayerChoiceType.None;
 
     private bool hasTriggered = false;
 
     public void TriggerChoice()
     {
-        if (hasTriggered) return; // Не дозволяємо повторно
+        if (hasTriggered) return; 
         hasTriggered = true;
 
-        // Додаємо слухачів для вибору
+
         choiceManager.onLeftChoice.AddListener(ChooseRational);
         choiceManager.onRightChoice.AddListener(ChooseIntuitive);
 
-        // Активуємо панель вибору
         choiceManager.ActivateChoice();
     }
 
     private void ChooseRational()
     {
         lastChoice = PlayerChoiceType.Rational;
-        Debug.Log("Гравець обрав: Раціональний вибір");
+        Debug.Log("Р“СЂР°РІРµС†СЊ РѕР±СЂР°РІ: Р Р°С†С–РѕРЅР°Р»СЊРЅРёР№ РІРёР±С–СЂ");
 
-        // Запускаємо корутину для завершення рівня через 5 секунд
+        // в¬‡пёЏ Р”РѕРґР°С”РјРѕ Р·Р±РµСЂРµР¶РµРЅРЅСЏ РІРёР±РѕСЂСѓ
+        var playerData = Resources.Load<PlayerDataSO>("PlayerData");
+        playerData.data.lastChoice = lastChoice;
+        SaveSystem.Save(playerData);
+
         StartCoroutine(CompleteLevelAfterDelay(5f));
     }
 
     private void ChooseIntuitive()
     {
         lastChoice = PlayerChoiceType.Intuitive;
-        Debug.Log("Гравець обрав: Інтуїтивний вибір");
+        Debug.Log("Р“СЂР°РІРµС†СЊ РѕР±СЂР°РІ: Р†РЅС‚СѓС—С‚РёРІРЅРёР№ РІРёР±С–СЂ");
 
-        // Запускаємо корутину для завершення рівня через 5 секунд
+        // в¬‡пёЏ Р”РѕРґР°С”РјРѕ Р·Р±РµСЂРµР¶РµРЅРЅСЏ РІРёР±РѕСЂСѓ
+        var playerData = Resources.Load<PlayerDataSO>("PlayerData");
+        playerData.data.lastChoice = lastChoice;
+        SaveSystem.Save(playerData);
+
         StartCoroutine(CompleteLevelAfterDelay(5f));
     }
 
+
+
     private IEnumerator CompleteLevelAfterDelay(float delay)
     {
-        // Чекаємо задану кількість секунд
         yield return new WaitForSeconds(delay);
+        Debug.Log("Р С–РІРµРЅСЊ Р·Р°РІРµСЂС€РµРЅРѕ");
 
-        // Завершуємо рівень (можна тут викликати метод для переходу на наступний рівень або іншу дію)
-        Debug.Log("Рівень завершено");
-        // Наприклад, можна викликати:
-        // SceneManager.LoadScene("NextLevel");
     }
 }
