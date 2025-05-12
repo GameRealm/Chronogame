@@ -1,5 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Playables;
 using System.Collections;
 
 public class SceneTransitionManager : MonoBehaviour
@@ -9,31 +10,47 @@ public class SceneTransitionManager : MonoBehaviour
     private bool isTransitioning = false;
     private bool playerInside = false;
 
+    [Header("Катсцена")]
+    public PlayableDirector cutsceneDirector;
+
     void Update()
     {
         if (playerInside && !isTransitioning && Input.GetKeyDown(KeyCode.G))
         {
-            SaveAndLoadScene("bossFight"); 
-            Debug.Log("��������� G");
+            StartCoroutine(PlayCutsceneAndLoadScene("bossFight"));
+            Debug.Log("Натиснуто G");
         }
     }
 
-    public void SaveAndLoadScene(string sceneName)
-    {
-        StartCoroutine(HandleSceneTransition(sceneName));
-    }
-
-    private IEnumerator HandleSceneTransition(string sceneName)
+    private IEnumerator PlayCutsceneAndLoadScene(string sceneName)
     {
         isTransitioning = true;
-        yield return SceneFader.Instance.FadeOut();
 
+        // 🔹 Відтворюємо катсцену, якщо є
+        if (cutsceneDirector != null)
+        {
+            cutsceneDirector.Play();
+
+            // Чекаємо завершення катсцени
+            while (cutsceneDirector.state == PlayState.Playing)
+            {
+                yield return null;
+            }
+        }
+
+        // 🔹 Плавне затемнення перед переходом (опційно)
+        if (SceneFader.Instance != null)
+            yield return SceneFader.Instance.FadeOut();
+
+        // 🔹 Збереження прогресу
         if (playerData != null)
         {
             playerData.data.lastCheckpointID = checkpointID;
+            playerData.data.nextSceneIndex = SceneManager.GetSceneByName(sceneName).buildIndex;
             SaveSystem.Save(playerData);
         }
 
+        // 🔹 Завантаження сцени
         SceneManager.LoadScene(sceneName);
     }
 
@@ -52,4 +69,25 @@ public class SceneTransitionManager : MonoBehaviour
             playerInside = false;
         }
     }
+
+    public void SaveAndLoadScene(string sceneName)
+    {
+        StartCoroutine(HandleSceneTransition(sceneName));
+    }
+
+    private IEnumerator HandleSceneTransition(string sceneName)
+    {
+        isTransitioning = true;
+        yield return SceneFader.Instance.FadeOut();
+
+        if (playerData != null)
+        {
+            playerData.data.lastCheckpointID = checkpointID;
+            playerData.data.nextSceneIndex = 3;
+            SaveSystem.Save(playerData);
+        }
+
+        SceneManager.LoadScene(sceneName);
+    }
+
 }

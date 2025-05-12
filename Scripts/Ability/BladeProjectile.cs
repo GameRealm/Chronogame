@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+
 public class BladeProjectile : MonoBehaviour
 {
     public float speed = 10f;
@@ -28,6 +29,18 @@ public class BladeProjectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        // Бос
+        var boss = other.GetComponentInParent<BossController>();
+        if (boss != null)
+        {
+            boss.TakeDamage(damage);
+            if (aoe)
+                CreateAOE(transform.position);
+            Destroy(gameObject);
+            return;
+        }
+
+        // Ворог
         if (other.CompareTag("Enemy"))
         {
             var enemy = other.GetComponent<EnemyHealth>();
@@ -39,21 +52,17 @@ public class BladeProjectile : MonoBehaviour
 
                 if (slowTime > 0 && follow != null)
                 {
-                    follow.SlowDown(0.5f); // Можна винести множник як поле
+                    follow.SlowDown(0.5f);
                     StartCoroutine(RestoreAfterDelay(follow, 0.5f, slowTime));
-
                 }
 
                 if (aoe)
-                {
                     CreateAOE(transform.position);
-                }
             }
 
             Destroy(gameObject);
         }
     }
-
     private IEnumerator RestoreAfterDelay(EnemyFollow enemy, float factor, float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -61,10 +70,8 @@ public class BladeProjectile : MonoBehaviour
             enemy.RestoreSpeed(factor);
     }
 
-
     private void CreateAOE(Vector2 position)
     {
-        // Тут можна створити ефект або логіку вибуху — для простоти:
         Collider2D[] enemies = Physics2D.OverlapCircleAll(position, 1.5f);
 
         foreach (var col in enemies)
@@ -73,14 +80,21 @@ public class BladeProjectile : MonoBehaviour
             {
                 var enemy = col.GetComponent<EnemyHealth>();
                 if (enemy != null)
-                    enemy.TakeDamage(damage); // Може викликати урон по області
+                    enemy.TakeDamage(damage);
             }
-        }
 
-        // Можеш додати візуальний ефект вибуху
+            // Додаємо перевірку на боса
+            var boss = col.GetComponent<BossController>();
+            if (boss != null)
+            {
+                boss.TakeDamage(damage);
+                Destroy(gameObject);
+                return;
+            }
+
+        }
     }
 
-    // 🔵 Для тесту в інспекторі
     private void OnDrawGizmosSelected()
     {
         if (aoe)

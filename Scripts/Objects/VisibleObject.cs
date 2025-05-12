@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class VisibleObject : MonoBehaviour
 {
-    public GameObject targetObject; 
+    public GameObject targetObject;
+    public GameObject lightTarget;
 
     private bool isPlayerInZone = false;
 
@@ -13,6 +14,8 @@ public class VisibleObject : MonoBehaviour
         if (isPlayerInZone && Input.GetKeyDown(KeyCode.E))
         {
              targetObject.SetActive(true);
+            lightTarget.SetActive(true);
+            transform.GetChild(0).gameObject.SetActive(false);
         }
     }
 

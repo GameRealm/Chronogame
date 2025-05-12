@@ -11,4 +11,5 @@ public class PlayerSaveData
 
     public bool hasLantern;
     public bool lanternOn;
+    public int nextSceneIndex = -1;
 }

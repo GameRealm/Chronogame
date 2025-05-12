@@ -20,6 +20,8 @@ public class CutsceneTrigger : MonoBehaviour
     public CutsceneManager cutsceneManager;
     public DialogueSystem dialogueSystem;
     public ChoiceManager choiceManager;
+    [Header("Scene Objects")]
+    public GameObject firstPowerObject;
 
     private void Update()
     {
@@ -28,11 +30,7 @@ public class CutsceneTrigger : MonoBehaviour
             TryPlayCutscene();
         }
 
-        if (timeline != null && timeline.state == PlayState.Playing && player != null)
-        {
-            lastCutscenePosition = player.transform.position;
-        }
-    }
+          }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -92,7 +90,8 @@ public class CutsceneTrigger : MonoBehaviour
 
         if (player != null)
         {
-            player.transform.position = lastCutscenePosition;
+            lastCutscenePosition = player.transform.position; // ⬅️ ЗБЕРЕЖЕННЯ позиції ПІСЛЯ катсцени
+
             player.enabled = true;
             player.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
         }
@@ -102,7 +101,6 @@ public class CutsceneTrigger : MonoBehaviour
             playerAnimator.SetFloat("Moving", 0);
         }
 
-        // ✅ Відмічаємо завершення ПЕРШОЇ катсцени
         if (cutsceneNumber == 1)
         {
             cutsceneManager.CompleteFirstCutscene();
@@ -110,14 +108,17 @@ public class CutsceneTrigger : MonoBehaviour
             Debug.Log("isFirstCutsceneCompleted = " + cutsceneManager.isFirstCutsceneCompleted);
         }
 
-
-        // ✅ Вибір з'являється ТІЛЬКИ після катсцени №3
         if (cutsceneNumber == 3)
         {
             ShowPlayerChoice();
+        }
 
+        if (cutsceneNumber == 2 && firstPowerObject != null)
+        {
+            firstPowerObject.SetActive(true);
         }
     }
+
 
     private void ShowPlayerChoice()
     {

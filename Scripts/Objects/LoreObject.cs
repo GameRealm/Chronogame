@@ -1,25 +1,26 @@
-using UnityEngine;
+п»їusing UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
 public class LoreObject : MonoBehaviour
 {
     [TextArea]
-    public string loreText = "Ваш текст тут";
+    public string loreText = "Р’Р°С€ С‚РµРєСЃС‚ С‚СѓС‚";
 
-    [Header("Налаштування відображення")]
-    public float fontSize = 4f; // публічний розмір шрифту (0.04 * 100)
-    public Vector3 textOffset = new Vector3(0, 0.2f, 0); // позиція над об'єктом
-    public Vector2 textBoxSize = new Vector2(200, 100); // ширина і висота в пікселях
+    [Header("РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ РІС–РґРѕР±СЂР°Р¶РµРЅРЅСЏ")]
+    public float fontSize = 4f; // РїСѓР±Р»С–С‡РЅРёР№ СЂРѕР·РјС–СЂ С€СЂРёС„С‚Сѓ (0.04 * 100)
+    public Vector3 textOffset = new Vector3(0, 0.2f, 0); // РїРѕР·РёС†С–СЏ РЅР°Рґ РѕР±'С”РєС‚РѕРј
+    public Vector2 textBoxSize = new Vector2(200, 100); // С€РёСЂРёРЅР° С– РІРёСЃРѕС‚Р° РІ РїС–РєСЃРµР»СЏС…
+    public TMP_FontAsset fontAsset; // в†ђ Р”РѕРґР°РЅРµ РїРѕР»Рµ РґР»СЏ РІРёР±РѕСЂСѓ С€СЂРёС„С‚Сѓ
 
     private GameObject textObject;
     private bool isPlayerInZone = false;
 
     private void Update()
     {
+
         if (Input.GetKeyDown(KeyCode.E) && textObject == null && isPlayerInZone)
         {
-            // Створення обгортки (Canvas)
             textObject = new GameObject("LoreTextCanvas");
             textObject.transform.SetParent(transform, false);
             textObject.transform.localPosition = textOffset;
@@ -27,35 +28,23 @@ public class LoreObject : MonoBehaviour
             Canvas canvas = textObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
 
-            // Отримання Order in Layer від батьківського об'єкта
             Renderer parentRenderer = GetComponent<Renderer>();
-            if (parentRenderer != null)
-            {
-                canvas.sortingOrder = parentRenderer.sortingOrder; // Встановлюємо те ж значення
-                Debug.Log($"Order in Layer успадковано: {parentRenderer.sortingOrder}");
-            }
-            else
-            {
-                Debug.LogWarning("У батьківського об'єкта немає Renderer. Використовується sortingOrder = 0.");
-                canvas.sortingOrder = 0; // Значення за замовчуванням
-            }
+            canvas.sortingOrder = parentRenderer != null ? parentRenderer.sortingOrder : 0;
 
             CanvasScaler scaler = textObject.AddComponent<CanvasScaler>();
             scaler.dynamicPixelsPerUnit = 10;
 
             textObject.AddComponent<GraphicRaycaster>();
 
-            // Створення фону (Image)
             GameObject bg = new GameObject("Background");
             bg.transform.SetParent(textObject.transform, false);
 
             Image bgImage = bg.AddComponent<Image>();
-            bgImage.color = new Color(0, 0, 0, 0.6f); // Темна прозора рамка
+            bgImage.color = new Color(0, 0, 0, 0.6f);
 
             RectTransform bgRect = bg.GetComponent<RectTransform>();
             bgRect.sizeDelta = textBoxSize;
 
-            // Створення тексту
             GameObject textGO = new GameObject("Text");
             textGO.transform.SetParent(bg.transform, false);
 
@@ -66,12 +55,15 @@ public class LoreObject : MonoBehaviour
             tmp.alignment = TextAlignmentOptions.Midline;
             tmp.enableWordWrapping = true;
 
+            if (fontAsset != null) tmp.font = fontAsset;
+
             RectTransform textRect = tmp.GetComponent<RectTransform>();
             textRect.sizeDelta = textBoxSize;
             textRect.localPosition = Vector3.zero;
-
-            Debug.Log("LoreObject: Текст створений!");
+            Debug.Log("рџ“Њ Text position: " + textObject.transform.position);
+            Debug.Log("LoreObject: РўРµРєСЃС‚ СЃС‚РІРѕСЂРµРЅРёР№!");
         }
+
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -89,10 +81,11 @@ public class LoreObject : MonoBehaviour
             if (textObject != null)
             {
                 Destroy(textObject);
-                Debug.Log("LoreObject: Текст видалений!");
+                Debug.Log("LoreObject: РўРµРєСЃС‚ РІРёРґР°Р»РµРЅРёР№!");
             }
         }
     }
+
     private void SetLayerRecursively(GameObject obj, int layer)
     {
         obj.layer = layer;
@@ -101,5 +94,4 @@ public class LoreObject : MonoBehaviour
             SetLayerRecursively(child.gameObject, layer);
         }
     }
-
 }

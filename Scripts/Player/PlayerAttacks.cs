@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Burst.CompilerServices;
+using UnityEngine;
 
 public class PlayerAttacks : MonoBehaviour
 {
@@ -15,6 +16,8 @@ public class PlayerAttacks : MonoBehaviour
     public Transform bladeSpawnPoint;
     public PlayerStats stats;
     private bool canFireBlade = true;
+    public ParticleSystem shortAttackEffect;
+    public Transform attackEffectSpawnPoint;
     [Header("Chrono Sphere Settings")]
     public GameObject chronoSpherePrefab;
     public GameObject chargeEffectPrefab;
@@ -70,7 +73,6 @@ public class PlayerAttacks : MonoBehaviour
                 }
             }
 
-            // 🔄 Слідування ефекту за мишкою
             if (isChargingChrono && chargeEffectInstance != null)
             {
                 Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -81,7 +83,6 @@ public class PlayerAttacks : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
-            // ❌ Відпуск — скасовує зарядку (якщо гравець не дочекався)
             if (!isChargingChrono && chargeEffectInstance != null)
             {
                 Destroy(chargeEffectInstance);
@@ -112,9 +113,16 @@ public class PlayerAttacks : MonoBehaviour
                     stats.UseMana(3);
                     stats.ResetManaRegenDelay();
 
+                    if (shortAttackEffect != null && attackEffectSpawnPoint != null)
+                    {
+                        ParticleSystem effect = Instantiate(shortAttackEffect, attackEffectSpawnPoint.position, Quaternion.identity);
+                        effect.Play();
+                        Destroy(effect.gameObject, effect.main.duration + effect.main.startLifetime.constantMax);
+                    }
                 }
-
             }
+
+
             else if (state.IsName("Attack1") && comboStep == 1)
             {
                 if (stats.currentMana >= 3)
@@ -127,11 +135,17 @@ public class PlayerAttacks : MonoBehaviour
                     stats.UseMana(3);
                     stats.ResetManaRegenDelay();
 
+                    if (shortAttackEffect != null && attackEffectSpawnPoint != null)
+                    {
+                        ParticleSystem effect = Instantiate(shortAttackEffect, attackEffectSpawnPoint.position, Quaternion.identity);
+                        effect.Play();
+                        Destroy(effect.gameObject, effect.main.duration + effect.main.startLifetime.constantMax);
+                    }
                 }
             }
         }
 
-        // Визначаємо завершення анімації атаки
+
         if (isAttacking && !state.IsName("Attack1") && !state.IsName("Attack2"))
         {
             isAttacking = false;
@@ -207,30 +221,48 @@ public class PlayerAttacks : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            EnemyHealth enemy = hits[i].GetComponent<EnemyHealth>();
+            Collider2D hit = hits[i]; // 👈 додай цю строчку
+
+            // Якщо звичайний ворог
+            EnemyHealth enemy = hit.GetComponent<EnemyHealth>();
             if (enemy != null)
             {
                 enemy.TakeDamage(attackDamage);
+                continue; // не потрібно перевіряти інше
+            }
+
+            // Якщо бос
+            BossController boss = hit.GetComponent<BossController>();
+            if (boss != null)
+            {
+                boss.TakeDamage(attackDamage);
             }
         }
     }
+
     void LaunchBlade()
     {
         if (!canFireBlade) return;
 
+        int requiredMana = 0;
+
+        // 🔎 Визначаємо потрібну кількість мани
         if (ChoiceTrigger.lastChoice == PlayerChoiceType.Rational)
-        {
-            // Менш витратна, швидка атака
-            stats.UseMana(5); // умовно
-            bladePrefab.GetComponent<BladeProjectile>().SetSlowEffect(2f);
-        }
+            requiredMana = 5;
         else if (ChoiceTrigger.lastChoice == PlayerChoiceType.Intuitive)
+            requiredMana = 10;
+
+        // ❌ Якщо мани не вистачає — виходимо
+        if (stats.currentMana < requiredMana)
         {
-            // Потужна зона атаки
-            stats.UseMana(10);
-            bladePrefab.GetComponent<BladeProjectile>().SetAOE(true);
+            Debug.Log("🚫 Недостатньо мани для запуску леза!");
+            return;
         }
 
+        // ✅ Знімаємо ману
+        stats.UseMana(requiredMana);
+
+        // 🎯 Створюємо та налаштовуємо лезо
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouseWorldPos.z = 0;
 
@@ -239,18 +271,16 @@ public class PlayerAttacks : MonoBehaviour
 
         if (ChoiceTrigger.lastChoice == PlayerChoiceType.Rational)
         {
-            stats.UseMana(5);
             projectile.SetSlowEffect(2f);
         }
         else if (ChoiceTrigger.lastChoice == PlayerChoiceType.Intuitive)
         {
-            stats.UseMana(10);
             projectile.SetAOE(true);
         }
 
         projectile.Launch(mouseWorldPos);
-
     }
+
 
 
     public void ResetBladeCast()

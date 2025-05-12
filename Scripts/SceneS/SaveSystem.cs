@@ -7,21 +7,25 @@ public static class SaveSystem
 
     public static void Save(PlayerDataSO playerData)
     {
+        // Серіалізація тільки даних
         string json = JsonUtility.ToJson(playerData.data, true);
+        Debug.Log("Збережені дані: " + json); // Лог для перевірки
         File.WriteAllText(path, json);
         Debug.Log("Збережено у " + path);
     }
+
 
     public static void Load(PlayerDataSO playerData)
     {
         if (File.Exists(path))
         {
             string json = File.ReadAllText(path);
+            Debug.Log("Завантажені дані: " + json);  // Лог для перевірки
             PlayerSaveData loadedData = JsonUtility.FromJson<PlayerSaveData>(json);
             if (loadedData != null)
             {
-                playerData.data = loadedData;
-                ChoiceTrigger.lastChoice = loadedData.lastChoice; 
+                playerData.data = loadedData;  // Завантажуємо дані у PlayerDataSO
+                ChoiceTrigger.lastChoice = loadedData.lastChoice;
             }
             else
             {
@@ -36,12 +40,4 @@ public static class SaveSystem
         }
     }
 
-    public static void Delete()
-    {
-        if (File.Exists(path))
-        {
-            File.Delete(path);
-            Debug.Log("Сейв видалено.");
-        }
-    }
 }

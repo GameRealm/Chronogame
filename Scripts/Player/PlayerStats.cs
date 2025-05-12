@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -22,6 +23,8 @@ public class PlayerStats : MonoBehaviour
     private float manaRegenBuffer = 0f;
 
     public bool isShielded = false;
+    private bool isDead = false;
+    public GameObject panel;
     private void Start()
     {
         currentHealth = maxHealth;
@@ -30,10 +33,14 @@ public class PlayerStats : MonoBehaviour
         UpdateUI();
     }
 
+    private float healTimer = 0f;
+    public float healRate = 0.2f; 
+
     private void Update()
     {
         isRegenerating = true;
 
+        // Відновлення мани (як і було)
         if (regenTimer > 0f)
             regenTimer -= Time.deltaTime;
 
@@ -47,9 +54,23 @@ public class PlayerStats : MonoBehaviour
                 currentMana += manaToAdd;
                 manaRegenBuffer -= manaToAdd;
                 currentMana = Mathf.Clamp(currentMana, 0, maxMana);
-                Debug.Log("✅ Мана регенерується на: " + manaToAdd);
                 UpdateUI();
             }
+        }
+
+        if (Input.GetKey(KeyCode.R) && currentMana >= 3 && currentHealth < maxHealth)
+        {
+            healTimer += Time.deltaTime;
+            if (healTimer >= healRate)
+            {
+                UseMana(3);
+                RestoreHealth(1);
+                healTimer = 0f;
+            }
+        }
+        else
+        {
+            healTimer = 0f;
         }
     }
 
@@ -67,7 +88,6 @@ public class PlayerStats : MonoBehaviour
     {
         if (isShielded)
         {
-            Debug.Log("🛡 Гравець захищений щитом. Урон заблоковано.");
             return;
         }
 
@@ -76,7 +96,6 @@ public class PlayerStats : MonoBehaviour
         UpdateUI();
 
         GetComponent<Animator>()?.SetTrigger("HurtTrigger");
-
         if (currentHealth <= 0)
             Die();
     }
@@ -101,8 +120,45 @@ public class PlayerStats : MonoBehaviour
         regenTimer = regenDelay;
     }
 
-    private void Die()
+     private void Die()
     {
-        Debug.Log("💀 Гравець помер!");
+        if (isDead) return;
+        isDead = true;
+        GetComponent<PlayerController>().enabled = false;
+
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.isKinematic = true;
+        }
+
+        Time.timeScale = 0f;
+
+        Animator animator = GetComponent<Animator>();
+        if (animator != null)
+        {
+            animator.SetTrigger("Death");
+        }
+
+        StartCoroutine(HandleDeathSequence_Unscaled());
+    }
+
+    private IEnumerator HandleDeathSequence_Unscaled()
+    {
+        yield return new WaitForSecondsRealtime(1.5f);
+
+        Animator animator = GetComponent<Animator>();
+        if (animator != null)
+            animator.enabled = false;
+
+        yield return new WaitForSecondsRealtime(0.5f);
+        panel.SetActive(true);
+    }
+    private void RestoreHealth(int amount)
+    {
+        currentHealth += amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        UpdateUI();
     }
 }

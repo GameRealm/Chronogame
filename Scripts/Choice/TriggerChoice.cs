@@ -11,12 +11,19 @@ public enum PlayerChoiceType
 public class ChoiceTrigger : MonoBehaviour
 {
     public ChoiceManager choiceManager;
+    private PlayerState playerState;
+    private Transform playerTransform;
 
     [Header("Вибір гравця (зберігається)")]
     public static PlayerChoiceType lastChoice = PlayerChoiceType.None;
 
     private bool hasTriggered = false;
 
+    void Start()
+    {
+        playerState = FindObjectOfType<PlayerState>();
+        playerTransform = playerState?.transform;
+    }
     public void TriggerChoice()
     {
         if (hasTriggered) return; 
@@ -37,6 +44,7 @@ public class ChoiceTrigger : MonoBehaviour
         // ⬇️ Додаємо збереження вибору
         var playerData = Resources.Load<PlayerDataSO>("PlayerData");
         playerData.data.lastChoice = lastChoice;
+        playerData.data.nextSceneIndex = 1;
         SaveSystem.Save(playerData);
 
         StartCoroutine(CompleteLevelAfterDelay(5f));
@@ -50,6 +58,7 @@ public class ChoiceTrigger : MonoBehaviour
         // ⬇️ Додаємо збереження вибору
         var playerData = Resources.Load<PlayerDataSO>("PlayerData");
         playerData.data.lastChoice = lastChoice;
+        playerData.data.nextSceneIndex = 1;
         SaveSystem.Save(playerData);
 
         StartCoroutine(CompleteLevelAfterDelay(5f));

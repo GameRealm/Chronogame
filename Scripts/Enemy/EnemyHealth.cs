@@ -40,17 +40,16 @@ public class EnemyHealth : MonoBehaviour
         switch (enemyType)
         {
             case EnemyType.Ghost:
-                animator.SetTrigger("ghostDeath"); // <- зроби тригер в аніматорі
+                animator.SetTrigger("ghostDeath"); 
                 break;
             case EnemyType.Boss:
-                animator.SetTrigger("bossDeath"); // <- тригер для босса
+                animator.SetTrigger("bossDeath"); 
                 break;
             default:
-                animator.SetBool("isDead", true); // для звичайних ворогів
+                animator.SetBool("isDead", true); 
                 break;
         }
 
-        // Вимкнути рух
         EnemyFollow follow = GetComponent<EnemyFollow>();
         if (follow != null)
             follow.enabled = false;
